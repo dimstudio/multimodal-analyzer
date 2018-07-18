@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 import seaborn as sns
+import matplotlib as plt
 import json
 from pandas.io.json import json_normalize    
 import zipfile
@@ -17,7 +18,8 @@ import operator
 
 from sklearn.svm import SVC
 from sklearn.feature_selection import RFE
-
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
 session_path = '../2018-7-16-15H19M43S524_annotated.zip'
 
@@ -87,16 +89,30 @@ for key in df1.columns.values:
             df2[fname] = [np.mean(dt[key]) if not dt.empty else None for dt in masked_df]
 
 
+target_features = ['classRelease']
+
 #Feauture ranking
 X = df2[features].values
-y = df2['classRelease'].values
+y = df2[target_features].values
 svc = SVC(kernel="linear", C=1)
 rfe = RFE(estimator=svc, n_features_to_select=1, step=1)
 rfe.fit(X, y)
 importance = dict(zip(df2[features].columns, rfe.ranking_))
 importance = sorted(importance.items(), key=operator.itemgetter(1))
-print importance
 
+training_feautres = []
+accuracies = []
+for n in range(1,len(importance)):
+    for el in importance[:n]:
+        training_feautres.append(el[0])
+    df2[training_feautres+target_features]
+    X = df2[training_feautres].values
+    y = df2[target_features].values
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=72)
+    svc.fit(X_train, y_train)
+    y_pred = svc.predict(X_test)
+    accuracies.append(accuracy_score(y_test, y_pred))
+plt.plot(accuracies)
 #Example plot correlation
 #sns.pairplot(df2[features+['duration','classRate']],hue='classRate',palette=sns.color_palette('BuGn', 2))
 
