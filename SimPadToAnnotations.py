@@ -12,12 +12,13 @@ import zipfile
 import json
 import xml.etree.ElementTree as ET
 
-session_zip = 'bls_session_Ddm_2018-07-16-16-36-18.ssx'
+session_zip = 'bls_session_Ddm1_2018-07-19-16-48-09.ssx'
 json_file_output = '_' + session_zip.replace('.ssx','.json')
 
 event_file = 'CPR/CPREvents.xml'
 colnames = ['startTime','endTime','compDepth','compPeakTime','compInstantaneousPeriod','compAbsolutePeakDepth','compLeaningDepth','compReleaseDepth','compHandposXiphoid','compHandposError','compIncompleteRelease','compMeanRate']
 df = pd.DataFrame(columns=colnames)
+newdf = pd.DataFrame()
 #pd.options.display.float_format = lambda x : '{:.3f}'.format(x) if int(x) == x else '{:,.3f}'.format(x)
 
 
@@ -48,7 +49,11 @@ with zipfile.ZipFile(session_zip) as z:
     df['classDepth'] = np.where(df['compReleaseDepth']>'5', '1', '0')
     df['classRate'] = np.where((df['compMeanRate']>='100') & (df['compMeanRate']<='120'), '1', '0') 
     
-    newdf = df[['start','end','compDepth','compReleaseDepth','compMeanRate','classRelease','classDepth','classRate']]
+    
+    newdf['start'] = pd.to_datetime(df['start'], unit='s').dt.time.astype(dtype='str').apply(lambda x: x[:-3] if(len(x) > 8) else x)
+    newdf['end'] = pd.to_datetime(df['end'], unit='s').dt.time.astype(dtype='str').apply(lambda x: x[:-3] if(len(x) > 8) else x)
+    newdf['annotations'] = df[['compDepth','compReleaseDepth','compMeanRate','classRelease','classDepth','classRate']].to_dict(orient='records')
+
     df_json_pretty = json.loads(newdf.to_json(orient='records'))
     metadata = {"recordingID": session_zip.replace('.ssx',''),"applicationName":"AutomaticAnnotations","intervals":df_json_pretty}
     with open(json_file_output, 'w') as outfile:
