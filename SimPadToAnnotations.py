@@ -12,7 +12,7 @@ import zipfile
 import json
 import xml.etree.ElementTree as ET
 
-session_zip = 'bls_session_Ddm1_2018-07-19-16-48-09.ssx'
+session_zip = 'bls_session_Ddm11_2018-07-24-14-56-11.ssx'
 json_file_output = '_' + session_zip.replace('.ssx','.json')
 
 event_file = 'CPR/CPREvents.xml'
@@ -39,6 +39,7 @@ with zipfile.ZipFile(session_zip) as z:
             #print np.size(r)
             df.loc[len(df)] = r
     df[['startTime','endTime']] = df[['startTime','endTime']].astype(dtype='float')/1000
+    df.at[df[df['startTime']<0].index, 'startTime'] = 0
     df[['startTime','endTime']] = df[['startTime','endTime']].astype(dtype='str')
     df.rename(columns={'startTime':'start','endTime':'end'}, inplace=True)
     df[['compPeakTime','compInstantaneousPeriod','compHandposXiphoid','compHandposXiphoid','compHandposError','compIncompleteRelease','compMeanRate']].astype(dtype='int')   
