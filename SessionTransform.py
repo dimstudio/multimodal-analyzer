@@ -107,12 +107,12 @@ for key in df1.columns.values:
    
 target_features = ['classRate','classDepth','classRelease']
 
-for t_feature in target_features:
+for target in target_features:
     #Feauture ranking
     min_max_scaler = preprocessing.MinMaxScaler()
     X = dfAnn[features].values
     X = min_max_scaler.fit_transform(X)
-    y = dfAnn[t_feature].values.ravel()
+    y = dfAnn[target].values.ravel()
     ETF = ExtraTreesClassifier()
     ETF.fit(X, y)
     
@@ -125,17 +125,17 @@ for t_feature in target_features:
         training_feautres = []
         for el in importance[:n]:
             training_feautres.append(el[0])
-        dfAnn[training_feautres+[t_feature]]
+        dfAnn[training_feautres+[target]]
         X = dfAnn[training_feautres].values
         X = min_max_scaler.fit_transform(X)
-        y = dfAnn[t_feature].values.ravel()
+        y = dfAnn[target].values.ravel()
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=72)
         svc.fit(X_train, y_train)
         y_pred = svc.predict(X_test)
         accuracies.append(accuracy_score(y_test, y_pred))
     fig = plt.figure()
     plt.plot(accuracies)
-    fig.suptitle('SVM '+t_feature+' N='+str(np.shape(dfAnn)[0]), fontsize=20)
+    fig.suptitle('SVM '+target+' N='+str(np.shape(dfAnn)[0]), fontsize=20)
     plt.xlabel('No. features', fontsize=18)
     plt.ylabel('Accuracy', fontsize=16)
     
